@@ -53,4 +53,6 @@ public class LibraryMain {
 		frame.add(cardPanel);
 		frame.setVisible(true);
 	}
+
+	// 깃 확인용
 }
