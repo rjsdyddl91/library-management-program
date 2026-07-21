@@ -1,0 +1,5 @@
+bin/
+.settings/
+.vscode/
+*.class
+*.log
