@@ -2,9 +2,13 @@ package edu.java.library.panel;
 
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Date;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -14,6 +18,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 
 import edu.java.library.dao.BookDAOImple;
 import edu.java.library.dao.RentalDAOImple;
@@ -28,14 +35,12 @@ public class UserPanel extends JPanel {
 
 	private MemberVO loginUser;
 	private JTable bookTable;
-	
-	private ArrayList<BookVO> currentBookList =
-			new ArrayList<BookVO>();
+
+	private ArrayList<BookVO> currentBookList = new ArrayList<>();
 
 	private int currentPage = 1;
-
 	private final int PAGE_SIZE = 10;
-	
+
 	private JButton firstPageBtn;
 	private JButton prevPageBtn;
 	private JButton nextPageBtn;
@@ -47,243 +52,179 @@ public class UserPanel extends JPanel {
 		setLayout(null);
 		setBackground(new Color(248, 249, 251));
 
+		// 상단 바
 		JPanel topBar = new JPanel(null);
 		topBar.setBackground(new Color(33, 40, 48));
 		topBar.setBounds(0, 0, 1000, 60);
 		add(topBar);
 
-		JLabel title = new JLabel("만화책 대여 시스템");
+		JLabel title = new JLabel("漫画貸出管理システム");
 		title.setForeground(Color.WHITE);
-		title.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+		title.setFont(new Font("Yu Gothic UI", Font.BOLD, 18));
 		title.setBounds(25, 15, 300, 30);
 		topBar.add(title);
 
-		JLabel pageTitle = new JLabel("도서 목록");
-		pageTitle.setFont(new Font("맑은 고딕", Font.BOLD, 30));
+		// 도서 목록 제목
+		JLabel pageTitle = new JLabel("書籍一覧");
+		pageTitle.setFont(new Font("Yu Gothic UI", Font.BOLD, 30));
 		pageTitle.setForeground(new Color(35, 40, 48));
 		pageTitle.setBounds(60, 85, 250, 45);
 		add(pageTitle);
 
-		JLabel guide = new JLabel("대여가능 도서는 더블클릭으로 대여, 본인이 대여한 도서는 더블클릭으로 반납할 수 있습니다.");
-		guide.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		JLabel guide = new JLabel(
+				"貸出可能な書籍はダブルクリックで借りられます。自分が借りた書籍はダブルクリックで返却できます。");
+
+		guide.setFont(new Font("Yu Gothic UI", Font.PLAIN, 14));
 		guide.setForeground(new Color(110, 118, 128));
-		guide.setBounds(60, 130, 700, 30);
+		guide.setBounds(60, 130, 850, 30);
 		add(guide);
 
-		JLabel searchLabel =
-				new JLabel("도서 검색");
-
-		searchLabel.setBounds(
-				60,
-				165,
-				80,
-				20);
-		
+		// 도서 검색
+		JLabel searchLabel = new JLabel("書籍検索");
+		searchLabel.setFont(new Font("Yu Gothic UI", Font.PLAIN, 13));
+		searchLabel.setBounds(60, 165, 80, 20);
 		add(searchLabel);
-		
-		JTextField searchField =
-				new JTextField(
-						"도서명을 입력해주세요.");
 
-		searchField.setBounds(
-				60,
-				190,
-				300,
-				40);
+		String searchPlaceholder = "書籍名を入力してください。";
 
-		searchField.setForeground(
-				Color.GRAY);
-
+		JTextField searchField = new JTextField(searchPlaceholder);
+		searchField.setFont(new Font("Yu Gothic UI", Font.PLAIN, 13));
+		searchField.setBounds(60, 190, 300, 40);
+		searchField.setForeground(Color.GRAY);
 		add(searchField);
 
-
-		// 🔥 여기부터 추가
-		searchField.addFocusListener(
-				new java.awt.event.FocusAdapter() {
+		searchField.addFocusListener(new FocusAdapter() {
 
 			@Override
-			public void focusGained(
-					java.awt.event.FocusEvent e) {
+			public void focusGained(FocusEvent e) {
 
-				if(searchField.getText()
-						.equals(
-								"도서명을 입력해주세요.")) {
-
+				if (searchField.getText().equals(searchPlaceholder)) {
 					searchField.setText("");
-
-					searchField.setForeground(
-							Color.BLACK);
+					searchField.setForeground(Color.BLACK);
 				}
 			}
 
 			@Override
-			public void focusLost(
-					java.awt.event.FocusEvent e) {
+			public void focusLost(FocusEvent e) {
 
-				if(searchField.getText()
-						.trim()
-						.isEmpty()) {
-
-					searchField.setText(
-							"도서명을 입력해주세요.");
-
-					searchField.setForeground(
-							Color.GRAY);
-
+				if (searchField.getText().trim().isEmpty()) {
+					searchField.setText(searchPlaceholder);
+					searchField.setForeground(Color.GRAY);
 					loadAllBooks();
 				}
 			}
 		});
 
-		JButton myRentalBtn = new JButton("내 대여 정보");
+		// 내 대여 정보 버튼
+		JButton myRentalBtn = new JButton("自分の貸出情報");
+		myRentalBtn.setFont(new Font("Yu Gothic UI", Font.BOLD, 14));
 		myRentalBtn.setBounds(760, 190, 150, 40);
 		add(myRentalBtn);
 
-		JButton logoutBtn =
-				new JButton("로그아웃");
-
-		logoutBtn.setFont(
-				new Font(
-						"맑은 고딕",
-						Font.BOLD,
-						15));
-
-		logoutBtn.setForeground(
-				new Color(
-						70,
-						75,
-						85));
-
-		logoutBtn.setBackground(
-				new Color(
-						248,
-						249,
-						251));
-
-		logoutBtn.setBorderPainted(
-				false);
-
-		logoutBtn.setFocusPainted(
-				false);
-
-		logoutBtn.setBounds(
-				800,
-				555,
-				130,
-				35);
-
+		// 로그아웃 버튼
+		JButton logoutBtn = new JButton("ログアウト");
+		logoutBtn.setFont(new Font("Yu Gothic UI", Font.BOLD, 15));
+		logoutBtn.setForeground(new Color(70, 75, 85));
+		logoutBtn.setBackground(new Color(248, 249, 251));
+		logoutBtn.setBorderPainted(false);
+		logoutBtn.setFocusPainted(false);
+		logoutBtn.setBounds(800, 555, 130, 35);
 		add(logoutBtn);
 
+		// 도서 목록
 		bookTable = new JTable();
-		bookTable.setFont(new Font("맑은 고딕", Font.PLAIN, 13));
+		bookTable.setFont(new Font("Yu Gothic UI", Font.PLAIN, 13));
 		bookTable.setRowHeight(28);
+		bookTable.getTableHeader().setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
 		bookTable.getTableHeader().setReorderingAllowed(false);
 
 		bookTable.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 
-				if(e.getClickCount() == 2) {
+				if (e.getClickCount() != 2) {
+					return;
+				}
 
-					int row = bookTable.getSelectedRow();
+				int row = bookTable.getSelectedRow();
 
-					if(row == -1) {
+				if (row == -1) {
+					return;
+				}
+
+				if (loginUser == null) {
+					JOptionPane.showMessageDialog(UserPanel.this, "ログイン情報を確認できません。");
+					return;
+				}
+
+				int bookId = Integer.parseInt(bookTable.getValueAt(row, 0).toString());
+				String bookTitle = bookTable.getValueAt(row, 1).toString();
+
+				BookDAOImple bookDao = new BookDAOImple();
+				BookVO selectedBook = bookDao.selectByBookId(bookId);
+
+				if (selectedBook == null) {
+					JOptionPane.showMessageDialog(UserPanel.this, "該当する書籍が存在しません。");
+					loadAllBooks();
+					return;
+				}
+
+				// DB에 저장된 상태값이므로 한국어로 비교
+				String status = selectedBook.getBookStatus();
+
+				if (status.equals("貸出可能")) {
+
+					int confirm = JOptionPane.showConfirmDialog(
+							UserPanel.this,
+							"「" + bookTitle + "」を借りますか？",
+							"書籍貸出の確認",
+							JOptionPane.YES_NO_OPTION);
+
+					if (confirm != JOptionPane.YES_OPTION) {
 						return;
 					}
 
-					int bookId = Integer.parseInt(
-							bookTable.getValueAt(row, 0).toString());
+					RentalVO vo = new RentalVO();
+					vo.setMemberId(loginUser.getMemberId());
+					vo.setBookId(bookId);
 
-					String bookTitle =
-							bookTable.getValueAt(row, 1).toString();
+					RentalDAOImple rentalDao = new RentalDAOImple();
+					int result = rentalDao.rentBook(vo);
 
-					String status =
-							bookTable.getValueAt(row, 4).toString();
-
-					if(status.equals("대여가능")) {
-
-						int confirm =
-								JOptionPane.showConfirmDialog(
-										UserPanel.this,
-										"\""
-										+ bookTitle
-										+ "\" 을 대여하시겠습니까?",
-										"도서 대여 확인",
-										JOptionPane.YES_NO_OPTION);
-
-						if(confirm != JOptionPane.YES_OPTION) {
-							return;
-						}
-
-						RentalVO vo = new RentalVO();
-						vo.setMemberId(loginUser.getMemberId());
-						vo.setBookId(bookId);
-
-						RentalDAOImple rentalDao =
-								new RentalDAOImple();
-
-						int result =
-								rentalDao.rentBook(vo);
-
-						if(result == 1) {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"\""
-									+ bookTitle
-									+ "\" 대여 완료!");
-
-							loadAllBooks();
-							
-							
-
-						} else {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"도서 대여 실패!");
-						}
-
-					} else if(status.equals("대여중")) {
-
-						int confirm =
-								JOptionPane.showConfirmDialog(
-										UserPanel.this,
-										"\""
-										+ bookTitle
-										+ "\" 을 반납하시겠습니까?",
-										"도서 반납 확인",
-										JOptionPane.YES_NO_OPTION);
-
-						if(confirm != JOptionPane.YES_OPTION) {
-							return;
-						}
-
-						RentalDAOImple rentalDao =
-								new RentalDAOImple();
-
-						int result =
-								rentalDao.returnBookByBookId(
-										loginUser.getMemberId(),
-										bookId);
-
-						if(result == 1) {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"\""
-									+ bookTitle
-									+ "\" 반납 완료!");
-
-							loadAllBooks();
-
-						} else {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"도서 반납 실패!\n본인이 대여한 도서만 반납할 수 있습니다.");
-						}
+					if (result == 1) {
+						JOptionPane.showMessageDialog(UserPanel.this, "「" + bookTitle + "」を貸し出しました。");
+						loadAllBooks();
+					} else {
+						JOptionPane.showMessageDialog(UserPanel.this, "書籍の貸出に失敗しました。");
 					}
+
+				} else if (status.equals("貸出中")) {
+
+					int confirm = JOptionPane.showConfirmDialog(
+							UserPanel.this,
+							"「" + bookTitle + "」を返却しますか？",
+							"書籍返却の確認",
+							JOptionPane.YES_NO_OPTION);
+
+					if (confirm != JOptionPane.YES_OPTION) {
+						return;
+					}
+
+					RentalDAOImple rentalDao = new RentalDAOImple();
+					int result = rentalDao.returnBookByBookId(loginUser.getMemberId(), bookId);
+
+					if (result == 1) {
+						JOptionPane.showMessageDialog(UserPanel.this, "「" + bookTitle + "」を返却しました。");
+						loadAllBooks();
+					} else {
+						JOptionPane.showMessageDialog(
+								UserPanel.this,
+								"書籍の返却に失敗しました。\n自分が借りた書籍のみ返却できます。");
+					}
+
+				} else {
+					JOptionPane.showMessageDialog(UserPanel.this, "現在、この書籍を操作することはできません。");
 				}
 			}
 		});
@@ -293,7 +234,8 @@ public class UserPanel extends JPanel {
 		scrollPane.setWheelScrollingEnabled(false);
 		scrollPane.setBounds(60, 255, 880, 300);
 		add(scrollPane);
-		
+
+		// 페이지 이동 버튼
 		firstPageBtn = new JButton("<<");
 		firstPageBtn.setBounds(325, 565, 55, 30);
 		add(firstPageBtn);
@@ -314,16 +256,15 @@ public class UserPanel extends JPanel {
 		lastPageBtn = new JButton(">>");
 		lastPageBtn.setBounds(620, 565, 55, 30);
 		add(lastPageBtn);
-		
-		firstPageBtn.addActionListener(e -> {
 
+		firstPageBtn.addActionListener(e -> {
 			currentPage = 1;
 			showBookPage();
 		});
 
 		prevPageBtn.addActionListener(e -> {
 
-			if(currentPage > 1) {
+			if (currentPage > 1) {
 				currentPage--;
 				showBookPage();
 			}
@@ -331,12 +272,9 @@ public class UserPanel extends JPanel {
 
 		nextPageBtn.addActionListener(e -> {
 
-			int totalPage =
-					(int) Math.ceil(
-							(double) currentBookList.size()
-							/ PAGE_SIZE);
+			int totalPage = (int) Math.ceil((double) currentBookList.size() / PAGE_SIZE);
 
-			if(currentPage < totalPage) {
+			if (currentPage < totalPage) {
 				currentPage++;
 				showBookPage();
 			}
@@ -344,12 +282,9 @@ public class UserPanel extends JPanel {
 
 		lastPageBtn.addActionListener(e -> {
 
-			int totalPage =
-					(int) Math.ceil(
-							(double) currentBookList.size()
-							/ PAGE_SIZE);
+			int totalPage = (int) Math.ceil((double) currentBookList.size() / PAGE_SIZE);
 
-			if(totalPage == 0) {
+			if (totalPage == 0) {
 				totalPage = 1;
 			}
 
@@ -359,27 +294,21 @@ public class UserPanel extends JPanel {
 
 		loadAllBooks();
 
-		searchField.getDocument().addDocumentListener(
-				new javax.swing.event.DocumentListener() {
+		// 도서 검색 이벤트
+		searchField.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
-			public void insertUpdate(
-					javax.swing.event.DocumentEvent e) {
-
+			public void insertUpdate(DocumentEvent e) {
 				searchBooks(searchField.getText());
 			}
 
 			@Override
-			public void removeUpdate(
-					javax.swing.event.DocumentEvent e) {
-
+			public void removeUpdate(DocumentEvent e) {
 				searchBooks(searchField.getText());
 			}
 
 			@Override
-			public void changedUpdate(
-					javax.swing.event.DocumentEvent e) {
-
+			public void changedUpdate(DocumentEvent e) {
 				searchBooks(searchField.getText());
 			}
 		});
@@ -389,11 +318,7 @@ public class UserPanel extends JPanel {
 		});
 
 		logoutBtn.addActionListener(e -> {
-
-			JOptionPane.showMessageDialog(
-					this,
-					"로그아웃 되었습니다.");
-
+			JOptionPane.showMessageDialog(this, "ログアウトしました。");
 			cardLayout.show(cardPanel, "login");
 		});
 	}
@@ -406,37 +331,24 @@ public class UserPanel extends JPanel {
 	private void loadAllBooks() {
 
 		BookDAOImple dao = new BookDAOImple();
-
-		currentBookList =
-				dao.selectAll();
+		currentBookList = dao.selectAll();
 
 		currentPage = 1;
-
 		showBookPage();
 	}
 
 	private void searchBooks(String keyword) {
 
 		keyword = keyword.trim();
-		
-		if(keyword.equals(
-				"도서명을 입력해주세요.")) {
 
-			loadAllBooks();
-			return;
-		}
-
-		if(keyword.isBlank()) {
+		if (keyword.equals("書籍名を入力してください。") || keyword.isBlank()) {
 			loadAllBooks();
 			return;
 		}
 
 		BookDAOImple dao = new BookDAOImple();
+		currentBookList = dao.selectByTitle(keyword);
 
-		ArrayList<BookVO> list =
-				dao.selectByTitle(keyword);
-
-		currentBookList = list;
 		currentPage = 1;
 		showBookPage();
 	}
@@ -444,17 +356,16 @@ public class UserPanel extends JPanel {
 	private void showBookTable(ArrayList<BookVO> list) {
 
 		String[] columnNames = {
-				"도서번호",
-				"제목",
-				"작가",
-				"출판사",
-				"상태"
+				"書籍番号",
+				"書名",
+				"著者",
+				"出版社",
+				"状態"
 		};
 
-		String[][] data =
-				new String[list.size()][5];
+		String[][] data = new String[list.size()][5];
 
-		for(int i = 0; i < list.size(); i++) {
+		for (int i = 0; i < list.size(); i++) {
 
 			BookVO book = list.get(i);
 
@@ -465,270 +376,175 @@ public class UserPanel extends JPanel {
 			data[i][4] = book.getBookStatus();
 		}
 
-		bookTable.setModel(
-				new javax.swing.table.DefaultTableModel(
-						data,
-						columnNames) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public boolean isCellEditable(
-							int row,
-							int column) {
-
-						return false;
-					}
-				});
-	}
-
-	private void showMyRentalInfo() {
-
-		RentalDAOImple dao =
-				new RentalDAOImple();
-
-		ArrayList<RentalJoinVO> list =
-				dao.selectMyRental(
-						loginUser.getMemberId());
-
-		if(list.isEmpty()) {
-
-			JOptionPane.showMessageDialog(
-					this,
-					"대여 기록이 없습니다.");
-
-			return;
-		}
-
-		String[] columnNames = {
-				"대여번호",
-				"도서번호",
-				"책 제목",
-				"대여일",
-				"반납예정일",
-				"반납일",
-				"상태"
-		};
-
-		String[][] data =
-				new String[list.size()][7];
-
-		for(int i = 0; i < list.size(); i++) {
-
-			RentalJoinVO rental =
-					list.get(i);
-
-			data[i][0] =
-					String.valueOf(
-							rental.getRentalId());
-
-			data[i][1] =
-					String.valueOf(
-							rental.getBookId());
-
-			data[i][2] =
-					rental.getTitle();
-
-			data[i][3] =
-					String.valueOf(
-							rental.getRentalDate());
-
-			data[i][4] =
-					String.valueOf(
-							rental.getDueDate());
-
-			if(rental.getReturnDate() == null) {
-
-				data[i][5] = "";
-
-			} else {
-
-				data[i][5] =
-						String.valueOf(
-								rental.getReturnDate());
-			}
-
-			if(rental.getRentalStatus().equals("대여중")
-					&& rental.getDueDate().before(
-							new java.sql.Date(
-									System.currentTimeMillis()))) {
-
-				data[i][6] =
-						"연체중";
-
-			} else {
-
-				data[i][6] =
-						rental.getRentalStatus();
-			}
-		}
-
-		JTable table =
-				new JTable(
-						data,
-						columnNames) {
+		bookTable.setModel(new DefaultTableModel(data, columnNames) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public boolean isCellEditable(
-					int row,
-					int column) {
-
+			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
+		});
+	}
+
+	private void showMyRentalInfo() {
+
+		if (loginUser == null) {
+			JOptionPane.showMessageDialog(this, "ログイン情報を確認できません。");
+			return;
+		}
+
+		RentalDAOImple dao = new RentalDAOImple();
+		ArrayList<RentalJoinVO> list = dao.selectMyRental(loginUser.getMemberId());
+
+		if (list == null || list.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "貸出履歴がありません。");
+			return;
+		}
+
+		String[] columnNames = {
+				"貸出番号",
+				"書籍番号",
+				"書名",
+				"貸出日",
+				"返却期限",
+				"返却日",
+				"状態"
 		};
-		
+
+		String[][] data = createRentalTableData(list);
+
+		JTable table = new JTable(new DefaultTableModel(data, columnNames) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		});
+
+		table.setFont(new Font("Yu Gothic UI", Font.PLAIN, 12));
+		table.setRowHeight(28);
+		table.getTableHeader().setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
+		table.getTableHeader().setReorderingAllowed(false);
+
 		table.addMouseListener(new MouseAdapter() {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
 
-				if(e.getClickCount() == 2) {
+				if (e.getClickCount() != 2) {
+					return;
+				}
 
-					int row = table.getSelectedRow();
+				int row = table.getSelectedRow();
 
-					if(row == -1) {
+				if (row == -1) {
+					return;
+				}
+
+				int bookId = Integer.parseInt(table.getValueAt(row, 1).toString());
+				String bookTitle = table.getValueAt(row, 2).toString();
+				String status = table.getValueAt(row, 6).toString();
+
+				RentalDAOImple rentalDao = new RentalDAOImple();
+
+				if (status.equals("貸出中") || status.equals("延滞中")) {
+
+					int confirm = JOptionPane.showConfirmDialog(
+							UserPanel.this,
+							"「" + bookTitle + "」を返却しますか？",
+							"書籍返却の確認",
+							JOptionPane.YES_NO_OPTION);
+
+					if (confirm != JOptionPane.YES_OPTION) {
 						return;
 					}
 
-					int bookId =
-							Integer.parseInt(
-									table.getValueAt(row, 1).toString());
+					int result = rentalDao.returnBookByBookId(loginUser.getMemberId(), bookId);
 
-					String bookTitle =
-							table.getValueAt(row, 2).toString();
+					if (result == 1) {
+						JOptionPane.showMessageDialog(UserPanel.this, "「" + bookTitle + "」を返却しました。");
+						loadAllBooks();
+						refreshMyRentalTable(table);
+					} else {
+						JOptionPane.showMessageDialog(UserPanel.this, "書籍の返却に失敗しました。");
+					}
 
-					String status =
-							table.getValueAt(row, 6).toString();
+				} else if (status.equals("返却済み")) {
 
-					RentalDAOImple rentalDao =
-							new RentalDAOImple();
+					int confirm = JOptionPane.showConfirmDialog(
+							UserPanel.this,
+							"「" + bookTitle + "」をもう一度借りますか？",
+							"書籍貸出の確認",
+							JOptionPane.YES_NO_OPTION);
 
-					if(status.equals("대여중")) {
+					if (confirm != JOptionPane.YES_OPTION) {
+						return;
+					}
 
-						int confirm =
-								JOptionPane.showConfirmDialog(
-										UserPanel.this,
-										"\""
-										+ bookTitle
-										+ "\" 을 반납하시겠습니까?",
-										"도서 반납 확인",
-										JOptionPane.YES_NO_OPTION);
+					RentalVO vo = new RentalVO();
+					vo.setMemberId(loginUser.getMemberId());
+					vo.setBookId(bookId);
 
-						if(confirm != JOptionPane.YES_OPTION) {
-							return;
-						}
+					int result = rentalDao.rentBook(vo);
 
-						int result =
-								rentalDao.returnBookByBookId(
-										loginUser.getMemberId(),
-										bookId);
-
-						if(result == 1) {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"\""
-									+ bookTitle
-									+ "\" 반납 완료!");
-
-							loadAllBooks();
-							refreshMyRentalTable(table);
-
-						} else {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"도서 반납 실패!");
-						}
-
-					} else if(status.equals("반납완료")) {
-
-						int confirm =
-								JOptionPane.showConfirmDialog(
-										UserPanel.this,
-										"\""
-										+ bookTitle
-										+ "\" 을 다시 대여하시겠습니까?",
-										"도서 대여 확인",
-										JOptionPane.YES_NO_OPTION);
-
-						if(confirm != JOptionPane.YES_OPTION) {
-							return;
-						}
-
-						RentalVO vo =
-								new RentalVO();
-
-						vo.setMemberId(
-								loginUser.getMemberId());
-
-						vo.setBookId(bookId);
-
-						int result =
-								rentalDao.rentBook(vo);
-
-						if(result == 1) {
-
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"\""
-									+ bookTitle
-									+ "\" 대여 완료!");
-
-							loadAllBooks();
-							refreshMyRentalTable(table);
-
-						} else {
-							JOptionPane.showMessageDialog(
-									UserPanel.this,
-									"현재 대여가 불가능한 도서입니다.");
-						}
+					if (result == 1) {
+						JOptionPane.showMessageDialog(UserPanel.this, "「" + bookTitle + "」を貸し出しました。");
+						loadAllBooks();
+						refreshMyRentalTable(table);
+					} else {
+						JOptionPane.showMessageDialog(UserPanel.this, "現在、この書籍は貸出できません。");
 					}
 				}
 			}
 		});
 
-		table.getTableHeader()
-		.setReorderingAllowed(false);
-
-		JScrollPane scrollPane =
-				new JScrollPane(table);
-
-		scrollPane.setPreferredSize(
-				new java.awt.Dimension(
-						850,
-						300));
+		JScrollPane rentalScrollPane = new JScrollPane(table);
+		rentalScrollPane.setPreferredSize(new Dimension(850, 300));
 
 		JOptionPane.showMessageDialog(
 				this,
-				scrollPane,
-				"내 대여 정보 조회",
+				rentalScrollPane,
+				"自分の貸出情報",
 				JOptionPane.PLAIN_MESSAGE);
 	}
-	
+
 	private void refreshMyRentalTable(JTable table) {
 
 		RentalDAOImple dao = new RentalDAOImple();
-
-		ArrayList<RentalJoinVO> list =
-				dao.selectMyRental(loginUser.getMemberId());
+		ArrayList<RentalJoinVO> list = dao.selectMyRental(loginUser.getMemberId());
 
 		String[] columnNames = {
-				"대여번호",
-				"도서번호",
-				"책 제목",
-				"대여일",
-				"반납예정일",
-				"반납일",
-				"상태"
+				"貸出番号",
+				"書籍番号",
+				"書名",
+				"貸出日",
+				"返却期限",
+				"返却日",
+				"状態"
 		};
 
-		String[][] data =
-				new String[list.size()][7];
+		String[][] data = createRentalTableData(list);
 
-		for(int i = 0; i < list.size(); i++) {
+		table.setModel(new DefaultTableModel(data, columnNames) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		});
+	}
+
+	private String[][] createRentalTableData(ArrayList<RentalJoinVO> list) {
+
+		String[][] data = new String[list.size()][7];
+		Date today = new Date(System.currentTimeMillis());
+
+		for (int i = 0; i < list.size(); i++) {
 
 			RentalJoinVO rental = list.get(i);
 
@@ -737,69 +553,44 @@ public class UserPanel extends JPanel {
 			data[i][2] = rental.getTitle();
 			data[i][3] = String.valueOf(rental.getRentalDate());
 			data[i][4] = String.valueOf(rental.getDueDate());
-			if(rental.getReturnDate() == null) {
 
+			if (rental.getReturnDate() == null) {
 				data[i][5] = "";
-
 			} else {
-
-				data[i][5] =
-						String.valueOf(
-								rental.getReturnDate());
+				data[i][5] = String.valueOf(rental.getReturnDate());
 			}
-			data[i][6] = rental.getRentalStatus();
+
+			// DB에 저장된 상태값이므로 한국어로 비교
+			if (rental.getRentalStatus().equals("貸出中") && rental.getDueDate().before(today)) {
+				data[i][6] = "延滞中";
+			} else {
+				data[i][6] = rental.getRentalStatus();
+			}
 		}
 
-		table.setModel(
-				new javax.swing.table.DefaultTableModel(
-						data,
-						columnNames) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public boolean isCellEditable(int row, int column) {
-						return false;
-					}
-				});
+		return data;
 	}
-	
+
 	private void showBookPage() {
 
-		int start =
-				(currentPage - 1)
-				* PAGE_SIZE;
+		int start = (currentPage - 1) * PAGE_SIZE;
+		int end = Math.min(start + PAGE_SIZE, currentBookList.size());
 
-		int end =
-				Math.min(
-						start + PAGE_SIZE,
-						currentBookList.size());
+		ArrayList<BookVO> pageList = new ArrayList<>();
 
-		ArrayList<BookVO> pageList =
-				new ArrayList<BookVO>();
-
-		for(int i = start; i < end; i++) {
-
-			pageList.add(
-					currentBookList.get(i));
+		for (int i = start; i < end; i++) {
+			pageList.add(currentBookList.get(i));
 		}
 
 		showBookTable(pageList);
 
-		int totalPage =
-				(int) Math.ceil(
-						(double)
-						currentBookList.size()
-						/ PAGE_SIZE);
+		int totalPage = (int) Math.ceil((double) currentBookList.size() / PAGE_SIZE);
 
-		if(totalPage == 0) {
+		if (totalPage == 0) {
 			totalPage = 1;
 		}
 
-		pageLabel.setText(
-				currentPage
-				+ " / "
-				+ totalPage);
+		pageLabel.setText(currentPage + " / " + totalPage);
 	}
 
 }

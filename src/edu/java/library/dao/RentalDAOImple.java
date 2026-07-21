@@ -41,7 +41,7 @@ public class RentalDAOImple implements RentalDAO {
 
 			if(!rs.next()) {
 
-				System.out.println("존재하지 않는 회원입니다.");
+				System.out.println("該当する会員が存在しません。");
 
 				rs.close();
 				pstmt.close();
@@ -65,8 +65,8 @@ public class RentalDAOImple implements RentalDAO {
 
 				String bookStatus = rs.getString("BOOK_STATUS");
 
-				if(!bookStatus.equals("대여가능")) {
-					System.out.println("이미 대여중인 도서입니다.");
+				if(!bookStatus.equals("貸出可能")) {
+					System.out.println("すでに貸出中の書籍です。");
 
 					rs.close();
 					pstmt.close();
@@ -95,7 +95,7 @@ public class RentalDAOImple implements RentalDAO {
 			pstmt.setDate(3, rentalDate);
 			pstmt.setDate(4, dueDate);
 			pstmt.setDate(5, null);
-			pstmt.setString(6, "대여중");
+			pstmt.setString(6, "貸出中");
 
 			result = pstmt.executeUpdate();
 		
@@ -105,7 +105,7 @@ public class RentalDAOImple implements RentalDAO {
 
 			pstmt = conn.prepareStatement(bookSql);
 
-			pstmt.setString(1, "대여중");
+			pstmt.setString(1, "貸出中");
 			pstmt.setInt(2, vo.getBookId());
 
 			pstmt.executeUpdate();
@@ -121,7 +121,7 @@ public class RentalDAOImple implements RentalDAO {
 		return result;
 	}
 
-	// return book
+	// 도서 반납
 	@Override
 	public int returnBook(int rentalId) {
 		Connection conn = null;
@@ -141,7 +141,7 @@ public class RentalDAOImple implements RentalDAO {
 			pstmt = conn.prepareStatement(checkSql);
 
 			pstmt.setInt(1, rentalId);
-			pstmt.setString(2, "대여중");
+			pstmt.setString(2, "貸出中");
 
 			rs = pstmt.executeQuery();
 			
@@ -150,7 +150,7 @@ public class RentalDAOImple implements RentalDAO {
 			if(rs.next()) {
 				bookId = rs.getInt("BOOK_ID");
 			} else {
-				System.out.println("반납할 대여 정보가 없습니다.");
+				System.out.println("返却対象の貸出情報がありません。");
 
 				rs.close();
 				pstmt.close();
@@ -169,7 +169,7 @@ public class RentalDAOImple implements RentalDAO {
 			pstmt = conn.prepareStatement(rentalSql);
 
 			pstmt.setDate(1, returnDate);
-			pstmt.setString(2, "반납완료");
+			pstmt.setString(2, "返却済み");
 			pstmt.setInt(3, rentalId);
 
 			result = pstmt.executeUpdate();
@@ -180,7 +180,7 @@ public class RentalDAOImple implements RentalDAO {
 
 			pstmt = conn.prepareStatement(bookSql);
 
-			pstmt.setString(1, "대여가능");
+			pstmt.setString(1, "貸出可能");
 			pstmt.setInt(2, bookId);
 
 			pstmt.executeUpdate();
@@ -301,7 +301,7 @@ public class RentalDAOImple implements RentalDAO {
 			}
 			
 			if(!found) {
-				System.out.println("해당 회원의 대여 정보가 없습니다.");
+				System.out.println("該当する会員の貸出情報がありません。");
 			}
 			
 			rs.close();
@@ -346,8 +346,8 @@ public class RentalDAOImple implements RentalDAO {
 					+ "WHERE R.MEMBER_ID = ? "
 					+ "ORDER BY "
 					+ "CASE "
-					+ "WHEN R.RENTAL_STATUS = '대여중' THEN 0 "
-					+ "WHEN R.RENTAL_STATUS = '반납완료' THEN 1 "
+					+ "WHEN R.RENTAL_STATUS = '貸出中' THEN 0 "
+					+ "WHEN R.RENTAL_STATUS = '返却済み' THEN 1 "
 					+ "ELSE 2 END, "
 					+ "R.RENTAL_ID";
 
@@ -439,7 +439,7 @@ public class RentalDAOImple implements RentalDAO {
 				Date dueDate = rs.getDate("DUE_DATE");
 
 				System.out.println(
-						"[연체중] "
+						"[延滞中] "
 						+ rentalId + " / "
 						+ memberId + " / "
 						+ bookId + " / "
@@ -448,7 +448,7 @@ public class RentalDAOImple implements RentalDAO {
 			}
 			
 			if(!found) {
-				System.out.println("연체중인 도서가 없습니다.");
+				System.out.println("延滞中の書籍がありません。");
 			}
 			
 			rs.close();
@@ -534,10 +534,10 @@ public class RentalDAOImple implements RentalDAO {
 			String sql =
 					"UPDATE EX_RENTAL "
 					+ "SET RETURN_DATE = NOW(), "
-					+ "RENTAL_STATUS = '반납완료' "
+					+ "RENTAL_STATUS = '返却済み' "
 					+ "WHERE MEMBER_ID = ? "
 					+ "AND BOOK_ID = ? "
-					+ "AND RENTAL_STATUS = '대여중'";
+					+ "AND RENTAL_STATUS = '貸出中'";
 
 			pstmt =
 					conn.prepareStatement(sql);
@@ -553,7 +553,7 @@ public class RentalDAOImple implements RentalDAO {
 
 				String updateBookSql =
 						"UPDATE EX_BOOK "
-						+ "SET BOOK_STATUS = '대여가능' "
+						+ "SET BOOK_STATUS = '貸出可能' "
 						+ "WHERE BOOK_ID = ?";
 
 				pstmt =
@@ -645,7 +645,7 @@ public class RentalDAOImple implements RentalDAO {
 						rs.getDate("DUE_DATE"));
 
 				vo.setStatus(
-						"연체중");
+						"延滞中");
 
 				list.add(vo);
 			}

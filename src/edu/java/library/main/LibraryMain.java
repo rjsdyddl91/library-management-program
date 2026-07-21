@@ -19,7 +19,7 @@ public class LibraryMain {
 	public static void main(String[] args) {
 
 		// 프로그램 메인 창 생성
-		JFrame frame = new JFrame("만화책 대여 시스템");
+		JFrame frame = new JFrame("漫画貸出管理システム");
 		frame.setSize(1000, 650);
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
