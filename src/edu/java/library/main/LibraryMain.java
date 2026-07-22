@@ -54,5 +54,4 @@ public class LibraryMain {
 		frame.setVisible(true);
 	}
 
-	// 깃 확인용
 }
