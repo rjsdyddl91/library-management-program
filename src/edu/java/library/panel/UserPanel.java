@@ -548,19 +548,8 @@ public class UserPanel extends JPanel {
 								rental.getReturnDate());
 			}
 
-			if(rental.getRentalStatus().equals("대여중")
-					&& rental.getDueDate().before(
-							new java.sql.Date(
-									System.currentTimeMillis()))) {
-
-				data[i][6] =
-						"연체중";
-
-			} else {
-
 				data[i][6] =
 						rental.getRentalStatus();
-			}
 		}
 
 		JTable table =
@@ -605,7 +594,8 @@ public class UserPanel extends JPanel {
 					RentalDAOImple rentalDao =
 							new RentalDAOImple();
 
-					if(status.equals("대여중")) {
+					if(status.equals("대여중")
+						|| status.equals("연체중")) {
 
 						int confirm =
 								JOptionPane.showConfirmDialog(
