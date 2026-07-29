@@ -296,20 +296,8 @@ public class MemberRentalInfoPanel extends JPanel {
 						String.valueOf(
 								rental.getReturnDate());
 			}
-
-			if(rental.getRentalStatus().equals("대여중")
-					&& rental.getDueDate().before(
-							new java.sql.Date(
-									System.currentTimeMillis()))) {
-
 				data[i][6] =
-						"연체중";
-
-			} else {
-
-				data[i][6] =
-						rental.getRentalStatus();
-			}
+			rental.getRentalStatus();
 		}
 
 		rentalTable.setModel(
