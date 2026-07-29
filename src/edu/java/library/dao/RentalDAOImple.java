@@ -339,16 +339,17 @@ public class RentalDAOImple implements RentalDAO {
 					+ "R.RENTAL_DATE, "
 					+ "R.DUE_DATE, "
 					+ "R.RETURN_DATE, "
-					+ "R.RENTAL_STATUS "
-					+ "FROM EX_RENTAL R "
+					+ "R.DISPLAY_STATUS AS RENTAL_STATUS "
+					+ "FROM V_RENTAL_STATUS R "
 					+ "JOIN EX_BOOK B "
 					+ "ON R.BOOK_ID = B.BOOK_ID "
 					+ "WHERE R.MEMBER_ID = ? "
 					+ "ORDER BY "
 					+ "CASE "
-					+ "WHEN R.RENTAL_STATUS = '貸出中' THEN 0 "
-					+ "WHEN R.RENTAL_STATUS = '返却済み' THEN 1 "
-					+ "ELSE 2 END, "
+					+ "WHEN R.DISPLAY_STATUS = '延滞中' THEN 0 "
+					+ "WHEN R.DISPLAY_STATUS = '貸出中' THEN 1 "
+					+ "WHEN R.DISPLAY_STATUS = '返却済み' THEN 2 "
+					+ "ELSE 3 END, "
 					+ "R.RENTAL_ID";
 
 			pstmt = conn.prepareStatement(sql);
@@ -412,9 +413,9 @@ public class RentalDAOImple implements RentalDAO {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
-		String sql = "SELECT * FROM EX_RENTAL "
-				+ "WHERE RETURN_DATE IS NULL "
-				+ "AND DUE_DATE < CURDATE()";
+		String sql =
+				"SELECT * FROM V_RENTAL_STATUS "
+				+ "WHERE DISPLAY_STATUS = '延滞中'";
 		
 		try {
 			conn = DriverManager.getConnection(
@@ -595,14 +596,14 @@ public class RentalDAOImple implements RentalDAO {
 				+ "M.EMAIL, "
 				+ "B.TITLE, "
 				+ "R.RENTAL_DATE, "
-				+ "R.DUE_DATE "
-				+ "FROM EX_RENTAL R "
+				+ "R.DUE_DATE, "
+				+ "R.DISPLAY_STATUS "
+				+ "FROM V_RENTAL_STATUS R "
 				+ "JOIN EX_MEMBER M "
 				+ "ON R.MEMBER_ID = M.MEMBER_ID "
 				+ "JOIN EX_BOOK B "
 				+ "ON R.BOOK_ID = B.BOOK_ID "
-				+ "WHERE R.RETURN_DATE IS NULL "
-				+ "AND R.DUE_DATE < CURDATE() "
+				+ "WHERE R.DISPLAY_STATUS = '延滞中' "
 				+ "ORDER BY R.DUE_DATE";
 
 		try {
@@ -645,7 +646,7 @@ public class RentalDAOImple implements RentalDAO {
 						rs.getDate("DUE_DATE"));
 
 				vo.setStatus(
-						"延滞中");
+        				rs.getString("DISPLAY_STATUS"));
 
 				list.add(vo);
 			}

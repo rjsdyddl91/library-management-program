@@ -8,7 +8,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.Date;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -542,7 +541,6 @@ public class UserPanel extends JPanel {
 	private String[][] createRentalTableData(ArrayList<RentalJoinVO> list) {
 
 		String[][] data = new String[list.size()][7];
-		Date today = new Date(System.currentTimeMillis());
 
 		for (int i = 0; i < list.size(); i++) {
 
@@ -560,12 +558,8 @@ public class UserPanel extends JPanel {
 				data[i][5] = String.valueOf(rental.getReturnDate());
 			}
 
-			// DB에 저장된 상태값이므로 한국어로 비교
-			if (rental.getRentalStatus().equals("貸出中") && rental.getDueDate().before(today)) {
-				data[i][6] = "延滞中";
-			} else {
-				data[i][6] = rental.getRentalStatus();
-			}
+			data[i][6] =
+					rental.getRentalStatus();
 		}
 
 		return data;
